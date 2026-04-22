@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
+const logger = require('../utils/logger');
 const Customer = require('../models/Customer');
 const Transaction = require('../models/Transaction');
 
@@ -21,6 +22,7 @@ router.get('/', authMiddleware, async (req, res) => {
     const customers = await Customer.find(query).sort({ last_visit: -1 });
     res.json(customers);
   } catch (err) {
+    logger.error({ err: err.message, business_id: req.user.businessId }, 'Failed to fetch customers');
     res.status(500).json({ message: err.message });
   }
 });
@@ -34,6 +36,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
     const transactions = await Transaction.find({ customer_id: req.params.id }).sort({ created_at: -1 }).limit(20);
     res.json({ customer, transactions });
   } catch (err) {
+    logger.error({ err: err.message, customerId: req.params.id }, 'Failed to fetch customer detail');
     res.status(500).json({ message: err.message });
   }
 });
@@ -42,8 +45,10 @@ router.get('/:id', authMiddleware, async (req, res) => {
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const customer = await Customer.create({ ...req.body, business_id: req.user.businessId });
+    logger.info({ customerId: customer._id, businessId: req.user.businessId }, 'New customer created');
     res.status(201).json(customer);
   } catch (err) {
+    logger.error({ err: err.message, business_id: req.user.businessId }, 'Failed to create customer');
     res.status(500).json({ message: err.message });
   }
 });
@@ -57,8 +62,10 @@ router.put('/:id', authMiddleware, async (req, res) => {
       { new: true }
     );
     if (!customer) return res.status(404).json({ message: 'Customer not found.' });
+    logger.info({ customerId: customer._id }, 'Customer updated');
     res.json(customer);
   } catch (err) {
+    logger.error({ err: err.message, customerId: req.params.id }, 'Failed to update customer');
     res.status(500).json({ message: err.message });
   }
 });
@@ -74,8 +81,10 @@ router.post('/:id/collect', authMiddleware, async (req, res) => {
     if (customer.balance > 0) customer.balance = 0; // Cannot have positive from collection
     await customer.save();
 
+    logger.info({ customerId: customer._id, amount }, 'Udhaar payment collected');
     res.json({ customer, message: `Collected ₹${amount} from ${customer.name}` });
   } catch (err) {
+    logger.error({ err: err.message, customerId: req.params.id }, 'Failed to collect udhaar payment');
     res.status(500).json({ message: err.message });
   }
 });

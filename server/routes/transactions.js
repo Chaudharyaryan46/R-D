@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
+const logger = require('../utils/logger');
 const Transaction = require('../models/Transaction');
 const Payment = require('../models/Payment');
 const Item = require('../models/Item');
@@ -52,6 +53,7 @@ router.post('/', authMiddleware, async (req, res) => {
           phone: customer_phone,
           balance: 0,
         });
+        logger.info({ customerId: customer._id, customerPhone: customer_phone }, 'Automated Udhaar customer profile created');
       }
       finalCustomerId = customer._id;
     }
@@ -124,7 +126,7 @@ router.post('/', authMiddleware, async (req, res) => {
 
     res.status(201).json(transaction);
   } catch (err) {
-    console.error('Transaction error:', err.message);
+    logger.error({ err: err.message, stack: err.stack, business_id: req.user.businessId }, 'Transaction creation failed');
     res.status(500).json({ message: err.message });
   }
 });
@@ -144,6 +146,7 @@ router.get('/today', authMiddleware, async (req, res) => {
 
     res.json(transactions);
   } catch (err) {
+    logger.error({ err: err.message, business_id: req.user.businessId }, 'Failed to fetch today transactions');
     res.status(500).json({ message: err.message });
   }
 });
@@ -174,6 +177,7 @@ router.get('/', authMiddleware, async (req, res) => {
 
     res.json({ transactions, total, page: parseInt(page), pages: Math.ceil(total / limit) });
   } catch (err) {
+    logger.error({ err: err.message, business_id: req.user.businessId }, 'Failed to fetch transactions');
     res.status(500).json({ message: err.message });
   }
 });
@@ -188,6 +192,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
     if (!transaction) return res.status(404).json({ message: 'Transaction not found.' });
     res.json(transaction);
   } catch (err) {
+    logger.error({ err: err.message, transactionId: req.params.id }, 'Failed to fetch transaction detail');
     res.status(500).json({ message: err.message });
   }
 });

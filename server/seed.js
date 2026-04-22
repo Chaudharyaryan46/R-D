@@ -7,6 +7,7 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const logger = require('./utils/logger');
 
 const Business = require('./models/Business');
 const User = require('./models/User');
@@ -44,13 +45,13 @@ const sampleCustomers = [
 async function seed() {
   try {
     await mongoose.connect(MONGO_URI);
-    console.log('✅ Connected to MongoDB');
+    logger.info('Connected to MongoDB');
 
     // Check if already seeded
     const existingBiz = await Business.findOne({ name: 'Sharma Kirana Store' });
     if (existingBiz) {
-      console.log('⚠️  Demo data already exists!');
-      console.log('   Login: admin@demo.com / demo1234');
+      logger.warn('Demo data already exists!');
+      logger.info('Login: admin@demo.com / demo1234');
       process.exit(0);
     }
 
@@ -63,7 +64,7 @@ async function seed() {
       address: '12, Lajpat Nagar Market, New Delhi - 110024',
       phone: '011-29834456',
     });
-    console.log('✅ Business created:', business.name);
+    logger.info({ businessName: business.name }, 'Business created');
 
     // Create Admin User
     const hashedPassword = await bcrypt.hash('demo1234', 10);
@@ -74,19 +75,19 @@ async function seed() {
       password: hashedPassword,
       role: 'admin',
     });
-    console.log('✅ Admin user created:', user.email);
+    logger.info({ userEmail: user.email }, 'Admin user created');
 
     // Create Items
     const itemsWithBiz = sampleItems.map(item => ({ ...item, business_id: business._id, tax_rate: item.category === 'Snacks' ? 5 : 0 }));
     const createdItems = await Item.insertMany(itemsWithBiz);
-    console.log(`✅ ${createdItems.length} items added to inventory`);
+    logger.info({ count: createdItems.length }, 'Items added to inventory');
 
     // Create Customers
     const customersWithBiz = sampleCustomers.map(c => ({ ...c, business_id: business._id, last_visit: new Date() }));
     const createdCustomers = await Customer.insertMany(customersWithBiz);
-    console.log(`✅ ${createdCustomers.length} customers added`);
+    logger.info({ count: createdCustomers.length }, 'Customers added');
 
-    console.log('\n🎉 Demo data seeded successfully!');
+    logger.info('Demo data seeded successfully!');
     console.log('================================');
     console.log('  Login URL:    http://localhost:3000/login');
     console.log('  Email:        admin@demo.com');
@@ -95,7 +96,7 @@ async function seed() {
 
     process.exit(0);
   } catch (err) {
-    console.error('❌ Seeding failed:', err.message);
+    logger.error({ err: err.message }, 'Seeding failed');
     process.exit(1);
   }
 }

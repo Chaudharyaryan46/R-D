@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const logger = require('../utils/logger');
 const User = require('../models/User');
 const Business = require('../models/Business');
 
@@ -12,6 +13,7 @@ router.post('/register', async (req, res) => {
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+      logger.warn({ email }, 'Registration failed: Email already exists');
       return res.status(400).json({ message: 'Email already registered.' });
     }
 
@@ -42,12 +44,15 @@ router.post('/register', async (req, res) => {
       { expiresIn: '7d' }
     );
 
+    logger.info({ userId: user._id, businessId: business._id }, 'New user registered');
+
     res.status(201).json({
       token,
       user: { id: user._id, name: user.name, email: user.email, role: user.role },
       business: { id: business._id, name: business.name, gst_enabled: business.gst_enabled },
     });
   } catch (err) {
+    logger.error({ err: err.message, stack: err.stack }, 'Registration error');
     res.status(500).json({ message: err.message });
   }
 });
@@ -59,11 +64,13 @@ router.post('/login', async (req, res) => {
 
     const user = await User.findOne({ email }).populate('business_id');
     if (!user) {
+      logger.warn({ email }, 'Login failed: User not found');
       return res.status(400).json({ message: 'Invalid email or password.' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      logger.warn({ email }, 'Login failed: Invalid password');
       return res.status(400).json({ message: 'Invalid email or password.' });
     }
 
@@ -74,6 +81,8 @@ router.post('/login', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
+
+    logger.info({ userId: user._id, email: user.email }, 'User logged in');
 
     res.json({
       token,
@@ -88,6 +97,7 @@ router.post('/login', async (req, res) => {
       },
     });
   } catch (err) {
+    logger.error({ err: err.message, stack: err.stack }, 'Login error');
     res.status(500).json({ message: err.message });
   }
 });

@@ -4,6 +4,8 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const pinoHttp = require('pino-http');
+const logger = require('./utils/logger');
 
 const authRoutes = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
@@ -15,6 +17,9 @@ const expenseRoutes = require('./routes/expenses');
 
 const app = express();
 const server = http.createServer(app);
+
+// Initialize Pino HTTP logging middleware
+app.use(pinoHttp({ logger }));
 
 const io = new Server(server, {
   cors: {
@@ -42,12 +47,12 @@ app.get('/', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
+  logger.info({ socketId: socket.id }, 'Client connected');
   socket.on('join_business', (businessId) => {
     socket.join(`business_${businessId}`);
   });
   socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
+    logger.info({ socketId: socket.id }, 'Client disconnected');
   });
 });
 
@@ -55,7 +60,7 @@ io.on('connection', (socket) => {
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/webbill';
 const PORT = process.env.PORT || 5000;
 
-console.log('\n🔗 Connecting to MongoDB:', MONGO_URI.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@'));
+logger.info('Connecting to MongoDB...');
 
 mongoose
   .connect(MONGO_URI, {
@@ -63,37 +68,12 @@ mongoose
     socketTimeoutMS: 45000,
   })
   .then(() => {
-    console.log('✅ MongoDB connected successfully!');
+    logger.info('✅ MongoDB connected successfully!');
     server.listen(PORT, () => {
-      console.log(`🚀 WebBill Server running on http://localhost:${PORT}`);
-      console.log('\n📌 Next steps:');
-      console.log('   1. Seed demo data: node seed.js');
-      console.log('   2. Open frontend:  http://localhost:3000\n');
+      logger.info(`🚀 WebBill Server running on http://localhost:${PORT}`);
     });
   })
   .catch((err) => {
-    console.error('\n❌ MongoDB connection failed!');
-    console.error('   Error:', err.message);
-    console.error('\n╔═══════════════════════════════════════════════════════╗');
-    console.error('║        HOW TO FIX THIS ERROR                          ║');
-    console.error('╠═══════════════════════════════════════════════════════╣');
-    console.error('║                                                        ║');
-    console.error('║  OPTION 1: Use MongoDB Atlas (Free Cloud - Recommended)║');
-    console.error('║  ─────────────────────────────────────────────────────║');
-    console.error('║  1. Go to: https://cloud.mongodb.com                  ║');
-    console.error('║  2. Create free account → New Project → Free Cluster  ║');
-    console.error('║  3. Click "Connect" → "Drivers" → Copy connection str ║');
-    console.error('║  4. Edit server/.env:                                  ║');
-    console.error('║     MONGO_URI=mongodb+srv://user:pass@cluster.net/wb  ║');
-    console.error('║  5. Run: node index.js                                 ║');
-    console.error('║                                                        ║');
-    console.error('║  OPTION 2: Install MongoDB Locally                    ║');
-    console.error('║  ─────────────────────────────────────────────────────║');
-    console.error('║  1. Download: https://www.mongodb.com/try/download    ║');
-    console.error('║  2. Install MongoDB Community Server                  ║');
-    console.error('║  3. Start: net start MongoDB                          ║');
-    console.error('║  4. Run: node index.js                                ║');
-    console.error('║                                                        ║');
-    console.error('╚═══════════════════════════════════════════════════════╝\n');
+    logger.error({ err: err.message }, '❌ MongoDB connection failed!');
     process.exit(1);
   });
