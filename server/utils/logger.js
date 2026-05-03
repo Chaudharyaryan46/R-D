@@ -1,44 +1,63 @@
 const pino = require('pino');
 const path = require('path');
 
+/**
+ * Proper System Design for Logging:
+ * 1. Development: Human-readable 'pretty' output + persistent local file logs.
+ * 2. Vercel/Serverless: JSON output to stdout (best for Vercel logs dashboard & log drains).
+ * 3. Self-Hosted Production: Optimized JSON output + rotated file storage.
+ */
+
+const isVercel = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production' && !process.env.LOCAL_PROD;
 const isDevelopment = process.env.NODE_ENV === 'development';
 
-const transports = pino.transport({
-  targets: [
-    // 1. Console Transport (Pretty in Dev)
+const getTargets = () => {
+  // If we are on Vercel, we only log to stdout in JSON format.
+  // Filesystem writing is disabled to prevent errors in serverless environments.
+  if (isVercel) {
+    return [
+      {
+        target: 'pino/file',
+        level: process.env.LOG_LEVEL || 'info',
+        options: { destination: 1 }, // 1 = stdout
+      }
+    ];
+  }
+
+  // Local development or self-hosted: Multi-transport support
+  return [
+    // 1. Console Transport
     {
-      target: 'pino-pretty',
+      target: isDevelopment ? 'pino-pretty' : 'pino/file',
       level: process.env.LOG_LEVEL || 'info',
-      options: {
+      options: isDevelopment ? {
         colorize: true,
         translateTime: 'SYS:standard',
         ignore: 'pid,hostname',
-      },
+      } : { destination: 1 },
     },
-    // 2. Persistent File Transport (with Rotation)
+    // 2. Persistent File Transport (only for non-serverless)
     {
       target: 'pino-roll',
       level: 'info',
       options: {
         file: path.join(__dirname, '..', 'logs', 'app.log'),
-        size: '10m',      // Rotate when file reaches 10MB
-        interval: '1d',   // Or rotate daily
-        mkdir: true,      // Ensure the directory exists
-        limit: {
-          count: 5        // Keep only the last 5 log files
-        }
+        size: '10m',
+        interval: '1d',
+        mkdir: true,
+        limit: { count: 5 }
       },
-    },
-  ],
-});
+    }
+  ];
+};
 
 const logger = pino(
   {
     level: process.env.LOG_LEVEL || 'info',
-    // In production, we might want to disable console pretty print to avoid overhead
-    // but here we keep it flexible based on the transports defined above.
+    // Add base info for every log if needed
+    base: isVercel ? { env: 'vercel' } : { env: 'local' },
   },
-  transports
+  pino.transport({ targets: getTargets() })
 );
 
 module.exports = logger;
