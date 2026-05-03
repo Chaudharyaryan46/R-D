@@ -19,7 +19,7 @@ export default function RegisterPage() {
     try {
       const res = await API.post('/auth/register', form);
       login(res.data);
-      toast.success('Business registered! Welcome to WebBill 🎉');
+      toast.success('Business registered! Welcome to WebMart ⚡');
       navigate('/');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Registration failed');
@@ -46,7 +46,7 @@ export default function RegisterPage() {
             margin: '0 auto 14px', fontSize: '24px',
           }}>⚡</div>
           <h1 style={{ fontSize: '1.8rem', fontWeight: 800 }} className="gradient-text">Create Account</h1>
-          <p style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.875rem' }}>Set up your store on WebBill</p>
+          <p style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.875rem' }}>Set up your store on WebMart</p>
         </div>
 
         <div className="card" style={{ borderRadius: 'var(--radius-xl)', padding: '28px' }}>

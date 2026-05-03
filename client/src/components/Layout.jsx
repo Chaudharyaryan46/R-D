@@ -31,7 +31,7 @@ export default function Layout({ children }) {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <h1>⚡ WebBill</h1>
+          <h1>⚡ WebMart</h1>
           <p>Smart Grocery POS</p>
         </div>
 

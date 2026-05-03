@@ -45,7 +45,7 @@ export default function LoginPage() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             margin: '0 auto 16px', fontSize: '28px', boxShadow: 'var(--glow)',
           }}>⚡</div>
-          <h1 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-1px' }} className="gradient-text">WebBill</h1>
+          <h1 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-1px' }} className="gradient-text">WebMart</h1>
           <p style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.875rem' }}>Smart POS for Indian Grocery Stores</p>
         </div>
 
@@ -103,7 +103,7 @@ export default function LoginPage() {
           <div className="divider" />
 
           <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-            New to WebBill?{' '}
+            New to WebMart?{' '}
             <Link to="/register" style={{ color: 'var(--primary-light)', fontWeight: 600 }}>
               Create account
             </Link>

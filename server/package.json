@@ -1,7 +1,7 @@
 {
-  "name": "webbill-server",
+  "name": "webmart-server",
   "version": "1.0.0",
-  "description": "WebBill CRM & POS Backend",
+  "description": "WebMart CRM & POS Backend",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

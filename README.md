@@ -1,4 +1,4 @@
-# ⚡ WebBill – Smart CRM + POS for Indian Grocery Stores
+# ⚡ WebMart – Smart CRM + POS for Indian Grocery Stores
 
 A complete, production-ready billing and CRM system built specifically for Indian grocery shop owners. Fast like a calculator, packed like Vyapar.
 
@@ -7,7 +7,7 @@ A complete, production-ready billing and CRM system built specifically for India
 ## 📁 Folder Structure
 
 ```
-WebBill/
+WebMart/
 ├── server/                    # Node.js + Express backend
 │   ├── models/                # MongoDB Mongoose schemas
 │   │   ├── Business.js
@@ -81,14 +81,14 @@ WebBill/
 ### Step 2: Server Setup
 
 ```bash
-cd WebBill/server
+cd WebMart/server
 npm install
 ```
 
 Edit `server/.env`:
 ```env
 PORT=5000
-MONGO_URI=mongodb://localhost:27017/webbill
+MONGO_URI=mongodb://localhost:27017/webmart
 JWT_SECRET=your_super_secret_key_here
 NODE_ENV=development
 ```
@@ -105,7 +105,7 @@ The API will be running at `http://localhost:5000`
 ### Step 3: Seed Demo Data
 
 ```bash
-cd WebBill/server
+cd WebMart/server
 node seed.js
 ```
 
@@ -120,7 +120,7 @@ This creates:
 ### Step 4: Client Setup
 
 ```bash
-cd WebBill/client
+cd WebMart/client
 npm install
 npm run dev
 ```
@@ -154,7 +154,7 @@ Open `http://localhost:3000` in your browser.
 
 ## 🛠️ Automated Udhaar Workflow (End-to-End)
 
-WebBill features a state-of-the-art automated credit (Udhaar) tracking system designed for high-speed grocery environments.
+WebMart features a state-of-the-art automated credit (Udhaar) tracking system designed for high-speed grocery environments.
 
 ### 1. The Trigger
 Whenever a bill is generated where the `Amount Received` is less than the `Total Bill`, the system identifies this as an **Udhaar transaction**.
@@ -293,4 +293,4 @@ npm run build
 
 ---
 
-Made with ❤️ for Indian Grocery Store Owners | **Powered by WebBill ⚡**
+Made with ❤️ for Indian Grocery Store Owners | **Powered by WebMart ⚡**
